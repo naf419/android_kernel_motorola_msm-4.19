@@ -44,6 +44,7 @@
 #define FTS_FLASH_DRWR_SUPPORT                      0
 #define FTS_FLASH_HALF_LENGTH                       0
 #define FTS_CMD_ECC_LENGTH_MAX                      (128 * 1024)
+#define FTS_CMD_ECC_LENGTH_MAX_8756                 32766
 #define FTS_ROMBOOT_CMD_ECC_FINISH_OK               0xA5
 
 /*****************************************************************************
@@ -250,7 +251,13 @@ static int fts_ecc_check(const u8 *buf, u32 len, u32 ecc_saddr)
     int packet_number = 0;
     int packet_remainder = 0;
     int offset = 0;
-    u32 packet_size = FTS_CMD_ECC_LENGTH_MAX;
+    u32 packet_size;
+    bool is_8756 = (fts_data->ic_info.ids.chip_idl == 0x56 || fts_data->ic_info.ids.chip_idl == 0x09);
+
+    if (is_8756)
+        packet_size = FTS_CMD_ECC_LENGTH_MAX_8756;
+    else
+        packet_size = FTS_CMD_ECC_LENGTH_MAX;
 
     FTS_INFO("ecc check");
     packet_number = len / packet_size;
@@ -296,6 +303,7 @@ static int fts_pram_write_ecc(const u8 *buf, u32 len)
     u16 code_len = 0;
     u16 code_len_n = 0;
     u32 pram_start_addr = 0;
+    bool is_8756 = (fts_data->ic_info.ids.chip_idl == 0x56 || fts_data->ic_info.ids.chip_idl == 0x09);
 
     FTS_INFO("begin to write pram app(bin len:%d)", len);
     /* get pram app length */
@@ -308,11 +316,9 @@ static int fts_pram_write_ecc(const u8 *buf, u32 len)
         return -EINVAL;
     }
 
-    if (FTS_FLASH_HALF_LENGTH) {
-        pram_app_size = ((u32) code_len) * 2;
-    } else {
-        pram_app_size = (u32) code_len;
-    }
+    pram_app_size = (u32)code_len;
+    if (is_8756)
+        pram_app_size = pram_app_size*2;
 
     if ((pram_app_size < FTS_MIN_LEN) || (pram_app_size > FTS_MAX_LEN_APP)) {
         FTS_ERROR("pram app length(%d) is invalid", pram_app_size);
@@ -347,6 +353,7 @@ static int fts_dram_write_ecc(const u8 *buf, u32 len)
     u16 const_len = 0;
     u16 const_len_n = 0;
     const u8 *dram_buf = NULL;
+    bool is_8756 = (fts_data->ic_info.ids.chip_idl == 0x56 || fts_data->ic_info.ids.chip_idl == 0x09);
 
 	FTS_INFO("begin to write dram data(bin len:%d)", len);
     /* get dram data length */
@@ -359,11 +366,9 @@ static int fts_dram_write_ecc(const u8 *buf, u32 len)
         return 0;
     }
 
-    if (FTS_FLASH_HALF_LENGTH) {
-        dram_size = ((u32) const_len) * 2;
-    } else {
-        dram_size = (u32) const_len;
-    }
+    dram_size = (u32) const_len;
+    if (is_8756)
+        dram_size = ((u32)const_len) * 2;
 
     if ((dram_size <= 0) || (dram_size > FTS_MAX_LEN_APP_PARAMS)) {
         FTS_ERROR("dram data length(%d) is invalid", dram_size);
@@ -419,6 +424,7 @@ static int fts_pram_start(void)
 int fts_fw_write_start(const u8 *buf, u32 len, bool need_reset)
 {
     int ret = 0;
+    bool is_8756 = (fts_data->ic_info.ids.chip_idl == 0x56 || fts_data->ic_info.ids.chip_idl == 0x09);
 
     FTS_INFO("begin to write and start fw(bin len:%d)", len);
     fts_data->fw_is_running = false;
@@ -439,7 +445,7 @@ int fts_fw_write_start(const u8 *buf, u32 len, bool need_reset)
         return ret;
     }
 
-	if (FTS_FLASH_DRWR_SUPPORT) {
+    if (is_8756) {
         /* write dram */
         ret = fts_dram_write_ecc(buf, len);
         if (ret < 0) {

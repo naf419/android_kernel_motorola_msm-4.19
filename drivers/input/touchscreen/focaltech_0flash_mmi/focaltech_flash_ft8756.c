@@ -67,13 +67,14 @@ static int fts_enter_into_boot(void)
     for (i = 0; i < FTS_UPGRADE_LOOP; i++) {
         /* hardware tp reset to boot */
         fts_fwupg_hardware_reset_to_boot();
+        mdelay(12);
 
         /* enter into boot & check boot id*/
         for (j = 0; j < FTS_READ_BOOT_ID_TIMEOUT; j++) {
             cmd[0] = FTS_CMD_START1;
             ret = fts_write(cmd, 1);
             if (ret >= 0) {
-                mdelay(8);
+                mdelay(12);
                 ret = fts_check_bootid();
                 if (0 == ret) {
                     FTS_INFO("boot id check pass, retry=%d", i);
@@ -404,7 +405,7 @@ static int fts_pram_start(void)
  *
  * return 0 if success, otherwise return error code
  */
-int fts_fw_write_start(const u8 *buf, u32 len, bool need_reset)
+int fts_fw_write_start(const u8 *buf, u32 len, bool need_reset, bool is_8756)
 {
     int ret = 0;
 

@@ -259,11 +259,14 @@ static int fts_get_chip_types(
 
     struct ft_chip_t ctype_8756[] = {{0x15, 0x87, 0x56, 0x87, 0x56, 0xF7, 0xA6, 0x00, 0x00}};
     struct ft_chip_t ctype_8009[] = {{0x17, 0x80, 0x09, 0x80, 0x09, 0x80, 0xA9, 0x00, 0x00}};
+    struct ft_chip_t ctype_8006s_aa[] = {{0x19, 0x86, 0x32, 0x86, 0x32, 0x86, 0xC2, 0x00, 0x00}};
 
     if ((id_h == 0x87) && (id_l == 0x56))
         memcpy(ctype, ctype_8756, sizeof(ctype_8756));
     else if ((id_h == 0x80) && (id_l == 0x9))
         memcpy(ctype, ctype_8009, sizeof(ctype_8009));
+    else if ((id_h == 0x86) && (id_l == 0x32))
+        memcpy(ctype, ctype_8006s_aa, sizeof(ctype_8006s_aa));
     else if ((id_h == 0) || (id_l == 0)) {
         FTS_ERROR("id_h/id_l is 0");
         return -EINVAL;
@@ -350,13 +353,13 @@ static int fts_get_ic_information(struct fts_ts_data *ts_data)
 
         ret = fts_read_bootid(ts_data, &chip_id[0]);
         if (ret <  0) {
-            FTS_DEBUG("read boot id fail,retry:%d", cnt);
+            FTS_ERROR("read boot id fail,retry:%d", cnt);
             continue;
         }
 
         ret = fts_get_chip_types(ts_data, chip_id[0], chip_id[1], INVALID);
         if (ret < 0) {
-            FTS_DEBUG("can't get ic informaton,retry:%d", cnt);
+            FTS_ERROR("can't get ic informaton,retry:%d", cnt);
             continue;
         }
 
