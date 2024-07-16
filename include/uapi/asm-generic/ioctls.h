@@ -80,6 +80,10 @@
 #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
 #define TIOCGPTPEER	_IO('T', 0x41) /* Safely open the slave */
 #define TIOCFAULT	0x544C	/* Uart fault */
+#define TIOCPMGET_ALT	0x54ED  /* PM get, as used in post-4.19 kernels */
+#define TIOCPMPUT_ALT	0x54EE  /* PM put, as used in post-4.19 kernels */
+#define TIOCPMACT_ALT	0x54EF  /* PM is active, as used in post-4.19 kernels */
+
 #define TIOCPMGET	0x544D	/* PM get */
 #define TIOCPMPUT	0x544E	/* PM put */
 #define TIOCPMACT	0x544F	/* PM is active */
